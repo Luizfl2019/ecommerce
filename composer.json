@@ -1,0 +1,19 @@
+{
+    "name": "luizfl2019/ecommerce",
+    "authors": [
+        {
+            "name": "Luiz Fernando Lourenco",
+            "email": "lluizfl@yahoo.com.br"
+        }
+    ],
+    "require": {
+    	"phpmailer/phpmailer":"5.2.22",
+    	"slim/slim":"2.0",
+    	"rain/raintpl":"3.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Hcode\\": "vendor\\hcodebr\\php-classes\\src"
+        }
+    }
+}
