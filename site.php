@@ -62,9 +62,9 @@ $app->get("/products/:desurl", function($desurl){
 $app->get("/cart", function(){
 
 	$cart = Cart::getFromSession(); // verifica se usuario esta logado
-   //var_dump($cart->getProducts());
-   // exit;
-	$page = new Page();
+    //var_dump($cart->getProducts());
+    //exit;   
+    $page = new Page();
 	$page->setTpl("cart", [
 		'cart'=>$cart->getValues(),
 		'products'=>$cart->getProducts(),
@@ -94,7 +94,7 @@ $app->get("/cart/:idproduct/minus", function($idproduct){
 	exit;
 });
 // remove todos os prodtos do carrinho
-$app->get("/cart/:dproduct/remove", function($idproduct){
+$app->get("/cart/:idproduct/remove", function($idproduct){
 
 	$product = new Product();
 	$product->get((int)$idproduct);
@@ -136,13 +136,16 @@ $page = new Page();
 
 // login do site
 $app->get("/login", function(){
-
+//var_dump(User::getErrorRegister());
+//exit;
 $page = new Page();
 
-	$page->setTpl("login",[
-		'error'=>User::getError()
+	$page->setTpl("login", [
+		'error'=>User::getError(),
+		'errorRegister'=>User::getErrorRegister(),
+		'registerValues'=>(isset($_SESSION['registerValues'])) ? $_SESSION['registerValues'] : ['name'=>'', 'email'=>'', 'phone'=>'']
 	]);	
-});
+});//'error'=>User::getError(),
 
 // verifica o login digitado
 $app->post("/login", function(){
@@ -171,5 +174,113 @@ $app->get("/logout", function(){
 
 });
 
+//criar rota para registro de um novo usuario
+$app->post("/register", function(){
+
+  $_SESSION['registerValues'] = $_POST;
+  // testa digitação
+ 	if(!isset($_POST['name']) || $_POST['name'] == ''){
+        
+ 		$result = User::setErrorRegister("Preencha o seu Nome.");
+ 		header("Location: /login");
+ 		exit;
+ 	}
+ 	if(!isset($_POST['email']) || $_POST['email'] == ''){
+        
+ 		$result = User::setErrorRegister("Preencha o seu Email.");
+ 		header("Location: /login");
+ 		exit;
+ 	}	
+ 	if(!isset($_POST['password']) || $_POST['password'] == ''){
+        
+ 		$result = User::setErrorRegister("Preencha o sua Senha.");
+ 		header("Location: /login");
+ 		exit;
+ 	}		
+ 	if (User::checkLoginExist(	$_POST['email']) === true ){
+		$result = User::setErrorRegister("Este endereço de e-mail já sendo usado por outro usuário.");
+ 		header("Location: /login");
+ 		exit;
+
+ 	}
+
+  $user = new User();
+  $user->setData([
+  	'inadmin'=>0,    // cadastra somente usuario não administrador
+  	'deslogin'=>$_POST['email'],
+  	'desperson'=>$_POST['name'],
+  	'desemail'=>$_POST['email'],
+  	'despassword'=>$_POST['password'],
+  	'nrphone'=>$_POST['phone']
+  ]);
+ 
+ $user->save();
+ User::login($_POST['email'],$_POST['password']);
+ header("Location: /checkout");
+ exit;
+
+});
+// *******************************  redefinir a senha *************************************
+// rotas para recuperação de senha
+$app->get("/forgot", function(){
+
+$page = new Page();
+
+	$page->setTpl("forgot");
+
+});
+
+// rotas pega o valor do email e consulta na tabela se existe
+$app->post("/forgot", function(){
+ 
+ $user =  User::getForgot($_POST["email"],false);  // false opção para o link alterar usuario 
+
+ header("Location: /forgot/sent");
+ exit;
+
+});
+
+$app->get("/forgot/sent", function (){
+
+$page = new Page();
+
+	$page->setTpl("forgot-sent");
+
+});
+
+$app->get("/forgot/reset", function(){
+
+
+$user = User::validForgotDecrypt($_GET["code"]);
+
+$page = new Page();
+
+$page->setTpl("forgot-reset", array(
+	"name"=>$user["desperson"],
+	"code"=>$_GET["code"]
+));
+
+});
+
+$app->post("/forgot/reset", function(){  // inserção da nova senha
+ //echo "Senha = ".$_POST["password"];
+	$forgot = User::validForgotDecrypt($_POST["code"]);
+
+	User::setForgotUsed($forgot["idrecovery"]);   // verifica se a senha ja foi utilizada e se esta no periodo de 1h.
+	$user = new User();
+
+	$user->get((int)$forgot["iduser"]);  // dados do usuario
+
+	$password = password_hash($_POST["password"], PASSWORD_DEFAULT,[
+		"cost"=>12
+		]);
+
+	$user->setPassword($password);
+
+	$page = new Page();
+
+	$page->setTpl("forgot-reset-success");
+
+});
 
 ?>

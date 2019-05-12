@@ -10,6 +10,7 @@ class User extends Model{
 		const SESSION = "User";
 		const SECRET = "HcodePhp7_Secret";	  // chave para criptografia minimo com 16 digitos
         const ERROR = "UserError";
+        const ERROR_REGISTER = "UserErrorRegister";
 
 		public static function getFromSession(){
 
@@ -172,7 +173,7 @@ public static function verifyLogin($inadmin = true){
 
 		$data = $results[0];
 		$data['desperson'] = utf8_encode($data['desperson']);
-
+		
 		$this->setData($data);
 
 	}
@@ -203,7 +204,7 @@ public static function verifyLogin($inadmin = true){
 		
     }
 
-    public static function getForgot($email){
+    public static function getForgot($email, $inadmin = true){
         
     	$sql = new Sql();
 
@@ -239,8 +240,15 @@ public static function verifyLogin($inadmin = true){
 
 		    		// cria link para ser enviado por e-mail para
 		    		//recuperação da senha
-		    		$link = "http://www.hcodecommerce.com.br/admin/forgot/reset?code=$code";
+		    		if ($inadmin === true){  // rota para redefinir a senha do administrador
 
+		    			$link = "http://www.hcodecommerce.com.br/admin/forgot/reset?code=$code";
+		     		
+		     		} else{                 // rota para redefinir a senha para o usuario comum
+		     		
+		     			$link = "http://www.hcodecommerce.com.br/forgot/reset?code=$code";
+		     		
+		     		}
 		    		$mailer = new Mailer($data["desemail"],$data["desperson"],"Redefinir Senha do Digibusca ","forgot", array(
 		    			"name"=>$data["desperson"],
 		    			"link"=>$link
@@ -260,6 +268,7 @@ public static function verifyLogin($inadmin = true){
     	   
     	  	$idrecovery = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, User::SECRET, base64_decode($code), MCRYPT_MODE_ECB);
             $idrecovery = (int)$idrecovery;
+            //var_dump($code);
             //var_dump($idrecovery);
             
     	  	$sql = new Sql();
@@ -329,12 +338,47 @@ public static function verifyLogin($inadmin = true){
 			$_SESSION[User::ERROR] = NULL;
 		}
 
+
+		public static function setErrorRegister($msg){
+
+			
+			$_SESSION[User::ERROR_REGISTER] = $msg;
+			//var_dump($_SESSION[User::ERROR_REGISTER]);
+			//exit;
+
+		}
+
+		public static function getErrorRegister(){
+
+			$msg =  (isset($_SESSION[User::ERROR_REGISTER]) &&  $_SESSION[User::ERROR_REGISTER]) ? $_SESSION[User::ERROR_REGISTER] : "";
+			User::clearErrorRegister();
+			return $msg;
+
+		}
+
+		public static function clearErrorRegister(){
+
+			$_SESSION[User::ERROR_REGISTER] = NULL;
+		}
+
+		public static function checkLoginExist($login){
+
+			$sql = new Sql();
+			$results = $sql->select("SELECT deslogin from tb_users 	where deslogin = :deslogin",[
+				'deslogin'=>$login
+			]);
+			return (count($results)> 0);    // se = 0 login = false
+
+		}
+
+
 		public static function getPasswordHash($password){
 
 			return password_hash($password, PASSWORD_DEFAULT, [
 				'cost'=>12
 			]);
 		}
+
 
 
 }	// end da classe	

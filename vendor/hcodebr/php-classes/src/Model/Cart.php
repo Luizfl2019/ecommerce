@@ -14,21 +14,21 @@ class Cart extends Model{
 	const SESSION = "Cart";
 	const SESSION_ERROR = "CartError";
 
-	
+    
 	public static function getFromSession(){
 
+		
 		$cart = new Cart();
-		//var_dump($_SESSION[Cart::SESSION]['idcart']) ;
-                
+		
+		
 		// verifica se carrinho ja existe
 		if(isset($_SESSION[Cart::SESSION]) && (int)$_SESSION[Cart::SESSION]['idcart'] > 0){
 
 			$cart->get((int)$_SESSION[Cart::SESSION]['idcart']); // existe então carrega o 
-		   // var_dump($cart) ;
-		  //  exit;
+		
 		} else {
-
-			$cart->getFromSessionID();
+           
+			$cart->getFromSessionID(); 
 
 			if (!(int)$cart->getidcart() > 0){   // se não existir carrinho
 
@@ -41,14 +41,14 @@ class Cart extends Model{
 					$user = User::getFromSession();
 					 $data['iduser'] = $user->getiduser();
  				}
-                //var_dump($user) ;
-                //exit;
+           
  				$cart->setData($data);
  				$cart->save();
  				$cart->setToSession();  // carrinho novo coloca na sessão
 
 			}
 		}	
+		
 		return $cart;
 	}
 	
@@ -75,15 +75,21 @@ class Cart extends Model{
 		$results = $sql->select("SELECT * FROM tb_carts WHERE idcart = :idcart", [
 			':idcart'=>$idcart
 		]);
+
 			if (count($results)>0){
 				$this->setData($results[0]);
+				
+			} else{
+
 			}
+		
+
 	}
 	// adiciona um carrinho de compras
 	public function save(){
 
 		$sql = new Sql();
-  
+
 		$results = $sql->select("CALL sp_carts_save(:idcart, :dessessionid, :iduser, :deszipcode, :vlfreight, :nrdays)", [
 			':idcart'=>$this->getidcart(),
 			':dessessionid'=>$this->getdessessionid(),
@@ -103,7 +109,7 @@ class Cart extends Model{
 			':idcart'=>$this->getidcart(),
 			':idproduct'=>$product->getidproduct()
 		]);
-			$this->getCalculateTotal(); // atualiza os valores
+		//	$this->getCalculateTotal(); // atualiza os valores
 	}
 
 	public function removeProduct(Product $product,$all = false){
@@ -129,7 +135,7 @@ class Cart extends Model{
 
 
 			}
-			$this->getCalculateTotal(); // atualiza valores
+			//$this->getCalculateTotal(); // atualiza valores
 	}		
 			// lista produtos que estão no carrinho
 			public function getProducts(){
@@ -177,7 +183,7 @@ class Cart extends Model{
 
         
 		$nrzipcode = str_replace('-','',$nrzipcode);  // retira - da variavel se houver
-		$totals = $this->getProductsTotals();
+		$totals = $this->getProductsTotals();  //tras as informações totais
 		
 		if ($totals['nrqtd']>0){  // verifica se existe produto no carrinho
 
@@ -198,13 +204,13 @@ class Cart extends Model{
 				'nVlDiametro'=>'0',
 				'sCdMaoPropria'=>'S',
 				'nVlValorDeclarado'=>$totals['vlprice'],
-				'sCdAvisoRecebimento'=>'SET',
-
+				'sCdAvisoRecebimento'=>'S'
 			]);
-
+			
 			$xml = simplexml_load_file("http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx/CalcPrecoPrazo?".$qs);
+			  //echo json_encode($xml);
 			  // var_dump($xml);
-			  
+			  // exit;
 			   $result = $xml->Servicos->cServico;
 
 			   if ($result->MsgErro != ''){    // testa se tem algum erro
