@@ -11,6 +11,7 @@ class User extends Model{
 		const SECRET = "HcodePhp7_Secret";	  // chave para criptografia minimo com 16 digitos
         const ERROR = "UserError";
         const ERROR_REGISTER = "UserErrorRegister";
+        const SUCCESS = "UserSuccess";
 
 		public static function getFromSession(){
 
@@ -150,6 +151,7 @@ public static function verifyLogin($inadmin = true){
 
 
 		$sql = new Sql();
+		
 
 		$results = $sql->select("CALL sp_users_save(:desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
 			":desperson"=>utf8_decode($this->getdesperson()),
@@ -160,8 +162,10 @@ public static function verifyLogin($inadmin = true){
 			":inadmin"=>$this->getinadmin()
 		));
 
-			//var_dump($results);
-			$this->setData($results[0]);
+			
+			$data = $results[0];
+		    $data['desperson'] = utf8_encode($data['desperson']);
+			$this->setData($data);
 
 	}
 	public function get($iduser){
@@ -181,8 +185,8 @@ public static function verifyLogin($inadmin = true){
 	public function update(){
 
 	$sql = new Sql();
-
-		$results = $sql->select("CALL sp_usersupdate_save(:iduser, :desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
+	
+	$results = $sql->select("CALL sp_usersupdate_save(:iduser, :desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
 			"iduser"=>$this->getiduser(),
 			":desperson"=>utf8_decode($this->getdesperson()),
 			":deslogin"=>$this->getdeslogin(),
@@ -191,11 +195,13 @@ public static function verifyLogin($inadmin = true){
 			":nrphone"=>$this->getnrphone(),
 			":inadmin"=>$this->getinadmin()
 		));
-
-			//var_dump($results);
-			$this->setData($results[0]);
+      
+		$data = $results[0];
+		$data['desperson'] = utf8_encode($data['desperson']);
+		$this->setData($data);
 
 	}
+
 	public function delete(){
 		$sql = new Sql();
 		$sql->query("CALL sp_users_delete(:iduser)",array(
@@ -338,6 +344,27 @@ public static function verifyLogin($inadmin = true){
 			$_SESSION[User::ERROR] = NULL;
 		}
 
+       
+		// mensagens de erro sucess
+		public static function setSuccess($msg){
+
+			$_SESSION[User::SUCCESS] = $msg;
+
+		}
+
+		public static function getSuccess(){
+
+			$msg =  (isset($_SESSION[User::SUCCESS]) &&  $_SESSION[User::SUCCESS]) ? $_SESSION[User::SUCCESS] : "";
+			User::clearSuccess();
+			return $msg;
+
+		}
+
+		public static function clearSuccess(){
+
+			$_SESSION[User::SUCCESS] = NULL;
+		}
+
 
 		public static function setErrorRegister($msg){
 
@@ -361,7 +388,7 @@ public static function verifyLogin($inadmin = true){
 			$_SESSION[User::ERROR_REGISTER] = NULL;
 		}
 
-		public static function checkLoginExist($login){
+		public static function checkLoginExists($login){
 
 			$sql = new Sql();
 			$results = $sql->select("SELECT deslogin from tb_users 	where deslogin = :deslogin",[
