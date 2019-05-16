@@ -53,6 +53,9 @@ class Order extends Model{
 
 			$this->setData($results[0]);
 		}
+		else{
+			throw new \Exception("não encontrei a ordem.");
+			}
 
 
 

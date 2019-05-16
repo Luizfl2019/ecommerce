@@ -215,7 +215,7 @@ $app->post("/checkout", function(){
 
 	$cart = Cart::getFromSession();
 
-	$totals = $cart->getCalculateTotal();
+	$cart->getCalculateTotal();
    // var_dump($cart->getvltotal());
    // exit;
 
@@ -534,4 +534,47 @@ $app->get("/boleto/:idorder", function($idorder){
 		require_once($path."layout_itau.php"); 
 
 });
+  // lista meus pedidos
+$app->get("/profile/orders", function(){
+
+	User::verifyLogin(false);
+
+	$user = User::getFromSession();
+	
+	$page = new Page();
+
+    $page->setTpl("profile-orders", [
+		'orders'=>$user->getOrders()
+	]);
+
+});
+
+$app->get("/profile/orders/:idorder", function($idorder){
+
+	User::verifyLogin(false);
+
+	$order = new Order();
+
+	//$cart = new Cart();
+	$cart = Cart::getFromSession();
+
+	$cart->get((int)$order->getidcart());
+
+	$cart->getCalculateTotal();
+
+	$order->get((int)$idorder);
+
+	$page = new Page();
+
+	//var_dump($cart->getValues());
+	//exit;
+
+	$page->setTpl("profile-orders-detail", [
+		'order'=>$order->getValues(),
+		'cart'=>$cart->getValues(),
+		'products'=>$cart->getProducts()
+	]);
+
+});
+
 ?>
