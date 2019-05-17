@@ -183,9 +183,18 @@ public static function verifyLogin($inadmin = true){
 	}
 
 	public function update(){
+    var_dump(array(
+			"iduser"=>(int)$this->getiduser(),
+			":desperson"=>utf8_decode($this->getdesperson()),
+			":deslogin"=>$this->getdeslogin(),
+			":despassword"=>User::getPasswordHash($this->getdespassword()),
+			":desemail"=>$this->getdesemail(),
+			":nrphone"=>$this->getnrphone(),
+			":inadmin"=>$this->getinadmin()
+		));
 
 	$sql = new Sql();
-	
+
 	$results = $sql->select("CALL sp_usersupdate_save(:iduser, :desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
 			"iduser"=>$this->getiduser(),
 			":desperson"=>utf8_decode($this->getdesperson()),
@@ -195,10 +204,9 @@ public static function verifyLogin($inadmin = true){
 			":nrphone"=>$this->getnrphone(),
 			":inadmin"=>$this->getinadmin()
 		));
-      
-		$data = $results[0];
-		$data['desperson'] = utf8_encode($data['desperson']);
-		$this->setData($data);
+       
+
+		$this->setData($results[0]);
 
 	}
 
