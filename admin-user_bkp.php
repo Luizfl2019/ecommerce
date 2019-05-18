@@ -3,6 +3,25 @@
 use \Hcode\Pageadmin;
 use \Hcode\Model\User;
 
+// altera senha do usuario
+$app->get('/admin/users/:iduser/password', function($iduser) {
+   
+	User::verifyLogin(); // verifica se o usuario esta logado our tem permissao 					 //administrativa
+	$user = new User();
+
+	$suer->get((inte)$iduser);
+
+	
+	$page = new PageAdmin();
+	$page->setTpl("users-password", [
+		'user'=>$user->getValues(),
+		'msgError'=>User::getError(),
+		'msgSuccess'=>User::getSuccess()
+	]);
+		
+});
+
+
 $app->get('/admin/users', function() {
    
 	User::verifyLogin(); // verifica se o usuario esta logado our tem permissao 					 //administrativa
