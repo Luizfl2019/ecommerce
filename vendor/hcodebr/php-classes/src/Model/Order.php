@@ -142,7 +142,67 @@ class Order extends Model{
 			$_SESSION[Order::SUCCESS] = NULL;
 		}
 
+// consulta todos os pedidos
+		public static function getPage($page = 1 , $itensPerPage = 10){
 
+    	$start = ($page - 1) * $itensPerPage;   // começa no 0
+    	$sql = new Sql();
+
+    	$results = $sql->select("
+			SELECT  SQL_CALC_FOUND_ROWS *
+			FROM tb_orders a
+				INNER JOIN tb_ordersstatus b USING(idstatus)
+				INNER JOIN tb_carts c USING(idcart)
+				INNER JOIN tb_users d ON d.iduser = a.iduser
+				INNER JOIN tb_addresses e USING(idaddress)
+				INNER JOIN tb_persons f ON f.idperson = d.idperson
+				ORDER BY a.dtregister DESC
+			LIMIT $start,$itensPerPage;
+		");
+		
+    		$resultTotal = $sql->select(" SELECT FOUND_ROWS() AS nrtotal");
+
+    		return[
+    			'data'=>$results,
+    			'total'=>(int)$resultTotal[0]["nrtotal"],
+    			'pages'=>ceil($resultTotal[0]["nrtotal"] / $itensPerPage) // ceil arredonda para cima numero toral de paginas
+
+    		];
+
+
+    }
+       // consulta pedidos via search
+    public static function getPageSearch($search, $page = 1 , $itensPerPage = 10){
+
+    	$start = ($page - 1) * $itensPerPage;   // começa no 0
+    	$sql = new Sql();
+
+    	$results = $sql->select("
+			SELECT  SQL_CALC_FOUND_ROWS *
+				FROM tb_orders a
+				INNER JOIN tb_ordersstatus b USING(idstatus)
+				INNER JOIN tb_carts c USING(idcart)
+				INNER JOIN tb_users d ON d.iduser = a.iduser
+				INNER JOIN tb_addresses e USING(idaddress)
+				INNER JOIN tb_persons f ON f.idperson = d.idperson
+				WHERE a.idorder = :id OR f.desperson LiKE :search
+				ORDER BY a.dtregister DESC
+			LIMIT $start,$itensPerPage;", [
+					':search'=>'%'.$search.'%',
+					':id'=>$search
+			]);
+		
+    		$resultTotal = $sql->select(" SELECT FOUND_ROWS() AS nrtotal");
+
+    		return[
+    			'data'=>$results,
+    			'total'=>(int)$resultTotal[0]["nrtotal"],
+    			'pages'=>ceil($resultTotal[0]["nrtotal"] / $itensPerPage) // ceil arredonda para cima numero toral de paginas
+
+    		];
+
+
+    }
 		
 
 }  // end class

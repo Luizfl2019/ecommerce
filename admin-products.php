@@ -8,11 +8,39 @@ use \Hcode\Model\Product;
 // lista os produtos existentes
 $app->get("/admin/products", function(){
 
-	User::verifyLogin();
-	$products = Product::listAll();
+	$linhas = 10;
+	User::verifyLogin(); // verifica se o usuario esta logado our tem permissao 					 //administrativa
+	
+	$search = (isset($_GET['search'])) ? $_GET['search'] : "";  //testa variavel 
+	$page = (isset($_GET['page'])) ? $_GET['page'] : 1;	  // seta page para 1 caso não exista
+
+	if($search != ''){
+
+			$pagination = Product::getPageSearch($search,$page,$linhas);  // $linhas numero de usuarios por pagina
+
+	}else {
+
+		$pagination = Product::getPage($page, $linhas);  // $linha = numero de usuarios por linha
+	}
+
+	$pages = [];
+
+	for ($x = 0; $x < $pagination['pages']; $x++){
+			array_push($pages, [
+			'href'=>'/adminproducts?'.http_build_query([
+					'page'=>$x+1,
+					'search'=>$search
+					]),
+					'text'=>$x+1
+			]);			
+
+	}
 	$page = new PageAdmin();
 	$page->setTpl("products",[
-	   'products'=>$products
+	   "products"=>$pagination['data'],
+		"search"=>$search,
+		"pages"=>$pages	
+
 	]);
 
 });

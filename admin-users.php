@@ -34,7 +34,7 @@ $app->get('/admin/users', function() {
 	}
 
 	$page = new PageAdmin();
-	$page->setTpl("categories", array (
+	$page->setTpl("users", array (
 		"users"=>$pagination['data'],
 		"search"=>$search,
 		"pages"=>$pages	

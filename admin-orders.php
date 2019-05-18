@@ -98,12 +98,40 @@ $app->get("/admin/orders/:idorder", function($idorder){
 // aula 125 lista pedidos no adm
 $app->get("/admin/orders", function (){
 
-	User::verifyLogin();
+	$linhas = 10;
+	User::verifyLogin(); // verifica se o usuario esta logado our tem permissao 					 //administrativa
+	
+	$search = (isset($_GET['search'])) ? $_GET['search'] : "";  //testa variavel 
+	$page = (isset($_GET['page'])) ? $_GET['page'] : 1;	  // seta page para 1 caso não exista
+
+	if($search != ''){
+
+			$pagination = Order::getPageSearch($search,$page,$linhas);  // $linhas numero de usuarios por pagina
+
+	}else {
+
+		$pagination = Order::getPage($page, $linhas);  // $linha = numero de usuarios por linha
+	}
+
+	$pages = [];
+
+	for ($x = 0; $x < $pagination['pages']; $x++){
+			array_push($pages, [
+			'href'=>'/admin/orders?'.http_build_query([
+					'page'=>$x+1,
+					'search'=>$search
+					]),
+					'text'=>$x+1
+			]);			
+
+	}
 
 	$page = new PageAdmin();
 
 	$page->setTpl("orders", [
-		'orders'=>Order::listAll()
+		"orders"=>$pagination['data'],
+		"search"=>$search,
+		"pages"=>$pages	
 	]);
 
 });

@@ -469,10 +469,11 @@ public static function verifyLogin($inadmin = true){
 			FROM tb_users a
 			INNER JOIN tb_persons b
 			USING(idperson)
-			WHERE b.desperson LIKE :search OR b.desemail = :search OR a.deslogin LIKE :search
+			WHERE b.desperson LIKE :search OR b.desemail = :email OR a.deslogin LIKE :search
 			ORDER BY desperson
 			LIMIT $start,$itensPerPage;", [
-					'search'=>'%'.$search.'%'
+					':search'=>'%'.$search.'%',
+					':email'=>$search
 			]);
 		
     		$resultTotal = $sql->select(" SELECT FOUND_ROWS() AS nrtotal");
