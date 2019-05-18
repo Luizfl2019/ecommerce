@@ -578,7 +578,7 @@ $app->get("/profile/orders/:idorder", function($idorder){
 
 });
 
-// alteraando a senha
+// alteraando a senha licao 124
 
 $app->get("/profile/change-password", function(){
 
@@ -593,7 +593,7 @@ $app->get("/profile/change-password", function(){
 
 });	
 
-
+// alteraando a senha licao 124
 $app->post("/profile/change-password", function(){
 
 	User::verifyLogin(false);
