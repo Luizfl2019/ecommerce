@@ -52,7 +52,8 @@ class Order extends Model{
 				WHERE a.idorder = :idorder", [
 				':idorder'=>$idorder				
 				]);
-			
+			//var_dump($results[0]);
+			//exit;
 			if(count($results) > 0){
 
 			$this->setData($results[0]);

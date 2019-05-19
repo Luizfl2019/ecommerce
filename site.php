@@ -148,6 +148,7 @@ if (isset($_GET['zipcode'])){
 }
 
 	if(!$address->getdesaddress()) $address->setdesaddress('');
+	if(!$address->getdesnumber()) $address->setdesnumber('');
 	if(!$address->getdescomplement()) $address->setdescomplement('');
 	if(!$address->getdesdistrict()) $address->setdesdistrict('');
 	if(!$address->getdescity()) $address->setdescity('');
@@ -210,7 +211,7 @@ $app->post("/checkout", function(){
 	$_POST['idperson'] = $user->getidperson();
 
 	$address->setData($_POST);
-
+	
 	$address->save();
 
 	$cart = Cart::getFromSession();
@@ -220,6 +221,7 @@ $app->post("/checkout", function(){
    // exit;
 
 	$order = new Order();
+
 
 	$order->setData([
 		'idcart'=>$cart->getidcart(),
@@ -231,10 +233,40 @@ $app->post("/checkout", function(){
 	]);
 	$order->save();
     
-    header("Location: /order/".$order->getidorder());  // passa o id da ordem
+    header("Location: /order/".$order->getidorder()."/pagseguro");  // passa o id da ordem
 	exit;
 
 });
+
+// ***************************  pagseguro *********************************
+
+$app->get("/order/:idorder/pagseguro", function ($idorder){
+
+	User::verifyLogin(false);
+	$order = new Order();
+	$order->get((int)$idorder);
+	$cart = $order->getCart();
+
+	$page = new Page([
+		'header'=>false,
+		'footer'=>false
+	]);
+  
+	
+	$page->setTpl("payment-pagseguro", [
+		'order'=>$order->getValues(),
+		'cart'=>$cart->getValues(),
+		'products'=>$cart->getProducts(),
+		'phone'=>[					       // dememenbra o nr do telefone em ddd e numero
+			'areacode'=>substr($order->getnrphone(),0,2),
+			'number'=>substr($order->getnrphone(),2, strlen($order->getnrphone()))	
+		]
+
+	]);
+
+
+});
+
 
 // login do site
 $app->get("/login", function(){
